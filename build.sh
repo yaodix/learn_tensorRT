@@ -1,6 +1,6 @@
 cd build
 cmake ..
 make
-./example
+# ./example
 
 
