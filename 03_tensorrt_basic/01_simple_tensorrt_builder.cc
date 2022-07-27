@@ -101,7 +101,7 @@ int main(){
     // ----------------------------- 4. 序列化模型文件并存储 -----------------------------
     // 将模型序列化，并储存为文件
     nvinfer1::IHostMemory* model_data = engine->serialize();
-    FILE* f = fopen("engine.trtmodel", "wb");
+    FILE* f = fopen("./02_tensorrt_basic/engine.trtmodel", "wb");
     fwrite(model_data->data(), 1, model_data->size(), f);
     fclose(f);
 

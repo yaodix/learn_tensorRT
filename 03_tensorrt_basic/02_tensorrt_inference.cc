@@ -85,7 +85,7 @@ bool build_model(){
 
     // 将模型序列化，并储存为文件
     nvinfer1::IHostMemory* model_data = engine->serialize();
-    FILE* f = fopen("engine.trtmodel", "wb");
+    FILE* f = fopen("./02_tensorrt_basic/engine.trtmodel", "wb");
     fwrite(model_data->data(), 1, model_data->size(), f);
     fclose(f);
 
@@ -98,8 +98,6 @@ bool build_model(){
     printf("Done.\n");
     return true;
 }
-
-
 
 vector<unsigned char> load_file(const string& file){
     ifstream in(file, ios::in | ios::binary);
@@ -124,7 +122,7 @@ void inference(){
 
     // ------------------------------ 1. 准备模型并加载   ----------------------------
     TRTLogger logger;
-    auto engine_data = load_file("engine.trtmodel");
+    auto engine_data = load_file("./02_tensorrt_basic/engine.trtmodel");
     // 执行推理前，需要创建一个推理的runtime接口实例。与builer一样，runtime需要logger：
     nvinfer1::IRuntime* runtime   = nvinfer1::createInferRuntime(logger);
     // 将模型从读取到engine_data中，则可以对其进行反序列化以获得engine
@@ -192,8 +190,9 @@ void inference(){
 
         // sigmoid
         float prob = 1 / (1 + exp(-output_host));
-        printf("output_prob[%d] = %f\n", io, prob);
+        printf("output_prob[%d]  =  %f ", io, prob);
     }
+    printf("\n");
 }
 
 int main(){
