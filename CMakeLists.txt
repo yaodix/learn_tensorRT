@@ -31,7 +31,7 @@ message(STATUS "Find OpenCV libraries: ${OpenCV_LIBRARIES}")
 include_directories(${CUDA_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS})
 
 # cuda_add_executable(example 06_yolov5_deploy/05_postprocess/01_post_process.cc 06_yolov5_deploy/05_postprocess/gpu_decode.cu)
-add_executable(example 05_classify_demo/01_classify.cc )
+add_executable(example 07_multi_thread/01_condition.cc )
 target_link_libraries(example   ${CUDA_LIBRARIES} 
                                 ${TENSORRT_LIBRARY}
                                 ${OpenCV_LIBRARIES}
