@@ -180,8 +180,8 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         dt[1] += t3 - t2
 
         # NMS
-        with open("./06_yolov5_deploy/05_postprocess/workspace/predict.data", "wb") as f:
-            f.write(pred.cpu().data.numpy().tobytes())
+        # with open("./06_yolov5_deploy/05_postprocess/workspace/predict.data", "wb") as f:
+        #     f.write(pred.cpu().data.numpy().tobytes())
 
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         dt[2] += time_sync() - t3
