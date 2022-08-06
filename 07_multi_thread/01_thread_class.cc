@@ -1,3 +1,7 @@
+/*
+线程和功能函数均是类内成员
+*/
+
 #include <thread>
 #include <stdio.h>
 #include <chrono>
