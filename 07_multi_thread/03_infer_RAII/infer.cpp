@@ -89,6 +89,7 @@ public:
         // this_thread::sleep_for(chrono::milliseconds(3000));
         // std::cout << "milliseconds 3000\n";
 
+        int batch_size = 5;
         vector<Job> fetched_jobs;  // 存放一个batch的推理数据
         while(running_) {            
             {
@@ -98,8 +99,11 @@ public:
 
                 if(!running_) break; // 如果 不在运行 就直接结束循环
                 
-                int batch_size = 5;
-                for(int i = 0; i < batch_size && !jobs_.empty(); ++i){   // jobs_不为空的时候
+                // while (jobs_.size() < batch_size && !jobs_.empty()) {  // batch > 1
+                //     fetched_jobs.emplace_back(std::move(jobs_.front())); 
+                //     jobs_.pop();                                        
+                // }
+                for(int i = 0; i < batch_size && !jobs_.empty(); ++i){   // jobs_不为空的时候 // 如果生产频率高于消费频率，一般可以产生max_batch
                     fetched_jobs.emplace_back(std::move(jobs_.front())); // 就往里面fetched_jobs里塞东西
                     jobs_.pop();                                         // fetched_jobs塞进来一个，jobs_那边就要pop掉一个。（因为move）
                 }
@@ -107,10 +111,14 @@ public:
 
             // 一次加载一批，并进行批处理
             // forward(fetched_jobs)
-            for(auto& job : fetched_jobs){
-                job.pro->set_value(job.input + "---processed");
+            // if (fetched_jobs.size() >= batch_size) // 可能会漏掉最后不足max_batchsize的任务
+             { 
+                std::cout << "batch size " << fetched_jobs.size() << std::endl;
+                for(auto& job : fetched_jobs){
+                    job.pro->set_value(job.input + "---processed");
+                }
+                fetched_jobs.clear();
             }
-            fetched_jobs.clear();
         }
         printf("Infer worker done.\n");
     }

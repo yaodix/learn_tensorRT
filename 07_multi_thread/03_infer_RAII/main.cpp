@@ -10,7 +10,16 @@ void infer_test(){
         return;
     }
     // 将任务提交给推理器（推理器执行commit），同时推理器（infer）也等着获取（get）结果
-    printf("commit msg = %s\n", infer->commit("msg").get().c_str()); 
+    auto fa = infer->commit("A");
+    auto fb = infer->commit("B");
+    auto fc = infer->commit("C");
+    auto fd = infer->commit("D");
+    auto fe = infer->commit("E");
+    printf("commit msg = %s\n", fa.get().c_str()); 
+    printf("commit msg = %s\n", fb.get().c_str()); 
+    printf("commit msg = %s\n", fc.get().c_str()); 
+    printf("commit msg = %s\n", fd.get().c_str()); 
+    printf("commit msg = %s\n", fe.get().c_str()); 
 }
 
 int main(){

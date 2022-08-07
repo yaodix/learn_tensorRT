@@ -82,7 +82,7 @@ void InferWork() {
       this_thread::sleep_for(chrono::milliseconds(1000));
 
     }
-    this_thread::yield();  // 交出时间片给其他线程
+    this_thread::yield();  // 交出时间片给其他线程, 有线程等待时使用
   }
   
 }

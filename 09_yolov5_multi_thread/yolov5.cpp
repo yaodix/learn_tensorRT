@@ -54,7 +54,6 @@ namespace YoloV5{
         }
 
         virtual shared_future<BoxArray> commit(const cv::Mat& image) override{
-
             if(image.empty()){
                 INFOE("Image is empty");
                 return shared_future<BoxArray>();
@@ -185,7 +184,7 @@ namespace YoloV5{
                 {
                     unique_lock<mutex> l(lock_);
                     cv_.wait(l, [&](){
-                        return !running_ || !jobs_.empty();
+                        return !running_ || !jobs_.empty();  // 未运行退出等待， job为空退出等待
                     });
 
                     if(!running_) break;
