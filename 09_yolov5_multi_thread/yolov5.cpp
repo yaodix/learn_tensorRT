@@ -74,12 +74,15 @@ namespace YoloV5{
             cv::invertAffineTransform(m2x3_i2d, m2x3_d2i);
 
             job.input.create(input_height_, input_width_, CV_8UC3);
-            cv::warpAffine(image, job.input, m2x3_i2d, job.input.size(), cv::INTER_LINEAR, cv::BORDER_CONSTANT, cv::Scalar::all(114));
+            // TODO: 可GPU优化
+            cv::warpAffine(image, job.input, m2x3_i2d, job.input.size(), cv::INTER_LINEAR,
+                    cv::BORDER_CONSTANT, cv::Scalar::all(114));
             job.input.convertTo(job.input, CV_32F, 1 / 255.0f);
 
             shared_future<BoxArray> fut = job.pro->get_future();
             {
                 lock_guard<mutex> l(lock_);
+                // TODO:生成频率和消费频率不一致问题
                 jobs_.emplace(std::move(job));
             }
             cv_.notify_one();
@@ -215,6 +218,7 @@ namespace YoloV5{
                 for(int ibatch = 0; ibatch < fetched_jobs.size(); ++ibatch){
                     auto& job = fetched_jobs[ibatch];
                     float* predict_batch = output->cpu<float>(ibatch);
+                    // TODO：可GPU优化
                     auto boxes = cpu_decode(
                         predict_batch, output->size(1), output->size(2), job.d2i, confidence_threshold_, nms_threshold_
                     );
