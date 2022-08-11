@@ -3,9 +3,6 @@
 // 编译用的头文件
 #include <NvInfer.h>
 
-// 推理用的运行时头文件
-#include <NvInferRuntime.h>
-
 // cuda include
 #include <cuda_runtime.h>
 
@@ -152,7 +149,7 @@ static vector<unsigned char> load_file(const string& file){
 static void inference(){
 
     TRTLogger logger;
-    auto engine_data = load_file("yolov5s.trtmodel");
+    auto engine_data = load_file("/home/yao/workspace/learn_tensorRT/06_yolov5_deploy/01_yolov5s/yolov5-6.0/yolov5s.trt");
     auto runtime   = make_nvshared(nvinfer1::createInferRuntime(logger));
     auto engine = make_nvshared(runtime->deserializeCudaEngine(engine_data.data(), engine_data.size()));
     if(engine == nullptr){
@@ -182,7 +179,7 @@ static void inference(){
 
     ///////////////////////////////////////////////////
     // letter box
-    auto image = cv::imread("rq.jpg");
+    auto image = cv::imread("09_yolov5_multi_thread/workspace/rq.jpg");
     float scale_x = input_width / (float)image.cols;
     float scale_y = input_height / (float)image.rows;
     float scale = std::min(scale_x, scale_y);
@@ -196,7 +193,7 @@ static void inference(){
 
     cv::Mat input_image(input_height, input_width, CV_8UC3);
     cv::warpAffine(image, input_image, m2x3_i2d, input_image.size(), cv::INTER_LINEAR, cv::BORDER_CONSTANT, cv::Scalar::all(114));
-    cv::imwrite("input-image.jpg", input_image);
+    cv::imwrite("09_yolov5_multi_thread/workspace/input-image.jpg", input_image);
 
     int image_area = input_image.cols * input_image.rows;
     unsigned char* pimage = input_image.data;
@@ -214,6 +211,10 @@ static void inference(){
 
     // 3x3输入，对应3x3输出
     auto output_dims = engine->getBindingDimensions(1);
+    std::cout << output_dims.d[0] << std::endl;  // 1
+    std::cout << output_dims.d[1] << std::endl;  // 25200
+    std::cout << output_dims.d[2] << std::endl;  // 85
+
     int output_numbox = output_dims.d[1];
     int output_numprob = output_dims.d[2];
     int num_classes = output_numprob - 5;
@@ -321,7 +322,7 @@ static void inference(){
         cv::rectangle(image, cv::Point(left-3, top-33), cv::Point(left + text_width, top), color, -1);
         cv::putText(image, caption, cv::Point(left, top-5), 0, 1, cv::Scalar::all(0), 2, 16);
     }
-    cv::imwrite("image-draw-old.jpg", image);
+    cv::imwrite("09_yolov5_multi_thread/workspace/image-draw-old.jpg", image);
 
     checkRuntime(cudaStreamDestroy(stream));
     checkRuntime(cudaFreeHost(input_data_host));
@@ -331,9 +332,7 @@ static void inference(){
 }
 
 int main_old(){
-    if(!build_model()){
-        return -1;
-    }
+
     inference();
     return 0;
 }

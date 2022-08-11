@@ -19,9 +19,9 @@ using namespace std;
 namespace YoloV5{
 
     struct Job{
-        shared_ptr<promise<BoxArray>> pro;
-        cv::Mat input;
-        float d2i[6];
+        shared_ptr<promise<BoxArray>> pro;  // 输出结果
+        cv::Mat input;                      // 输入图像
+        float d2i[6];                       // 
     };
 
     class InferImpl : public Infer{
@@ -83,7 +83,7 @@ namespace YoloV5{
             {
                 lock_guard<mutex> l(lock_);
                 // TODO:生成频率和消费频率不一致问题
-                jobs_.emplace(std::move(job));
+                jobs_.emplace(std::move(job));  // job 移动，避免拷贝
             }
             cv_.notify_one();
             return fut;
@@ -158,14 +158,11 @@ namespace YoloV5{
             return box_result;
         }
 
-        void worker(promise<bool>& pro){
-
+        void worker(promise<bool>& pro) {
             // load model
             checkRuntime(cudaSetDevice(gpuid_));
             auto model = TRT::load_infer(file_);
-
             if(model == nullptr){
-
                 // failed
                 pro.set_value(false);
                 INFOE("Load model failed: %s", file_.c_str());
@@ -178,12 +175,11 @@ namespace YoloV5{
             input_height_ = input->size(2);
 
             // load success
-            pro.set_value(true);
+            pro.set_value(true);  // set_value后，pro.get_future.get()立即执行到
 
             int max_batch_size = model->get_max_batch_size();
             vector<Job> fetched_jobs;
-            while(running_){
-                
+            while(running_) {                
                 {
                     unique_lock<mutex> l(lock_);
                     cv_.wait(l, [&](){
@@ -197,9 +193,7 @@ namespace YoloV5{
                         jobs_.pop();
                     }
                 }
-
-                for(int ibatch = 0; ibatch < fetched_jobs.size(); ++ibatch){
-                    
+                for(int ibatch = 0; ibatch < fetched_jobs.size(); ++ibatch){                    
                     auto& job = fetched_jobs[ibatch];
                     auto& image = job.input;
                     cv::Mat channel_based[3];
@@ -210,11 +204,9 @@ namespace YoloV5{
                     }
                     cv::split(image, channel_based);
                 }
-
                 // 一次加载一批，并进行批处理
                 // forward(fetched_jobs)
                 model->forward();
-
                 for(int ibatch = 0; ibatch < fetched_jobs.size(); ++ibatch){
                     auto& job = fetched_jobs[ibatch];
                     float* predict_batch = output->cpu<float>(ibatch);
@@ -227,10 +219,10 @@ namespace YoloV5{
                 fetched_jobs.clear();
             }
 
-            // 避免外面等待
+            // 避免外面等待，功能原理?
             unique_lock<mutex> l(lock_);
-            while(!jobs_.empty()){
-                jobs_.back().pro->set_value({});
+            while(!jobs_.empty()) {
+                jobs_.front().pro->set_value({});  // 原来代码jobs_.back().pro->set_value({}) 错误？
                 jobs_.pop();
             }
             INFO("Infer worker done.");

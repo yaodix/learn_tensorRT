@@ -3,9 +3,6 @@
 // 编译用的头文件
 #include <NvInfer.h>
 
-// 推理用的运行时头文件
-#include <NvInferRuntime.h>
-
 // cuda include
 #include <cuda_runtime.h>
 
@@ -21,7 +18,6 @@
 #include <unistd.h>
 #include <opencv2/opencv.hpp>
 
-#include "trt-builder.hpp"
 #include "simple-logger.hpp"
 #include "yolov5.hpp"
 
@@ -54,9 +50,10 @@ static bool exists(const string& path){
 
 static void inference(){
 
-    auto image = cv::imread("rq.jpg");
-    auto yolov5 = YoloV5::create_infer("yolov5s.trtmodel");
+    auto image = cv::imread("09_yolov5_multi_thread/workspace/rq.jpg");
+    auto yolov5 = YoloV5::create_infer("06_yolov5_deploy/01_yolov5s/yolov5-6.0/yolov5s.trt");
     auto boxes = yolov5->commit(image).get();
+
     for(auto& box : boxes){
         cv::Scalar color(0, 255, 0);
         cv::rectangle(image, cv::Point(box.left, box.top), cv::Point(box.right, box.bottom), color, 3);
@@ -67,7 +64,7 @@ static void inference(){
         cv::rectangle(image, cv::Point(box.left-3, box.top-33), cv::Point(box.left + text_width, box.top), color, -1);
         cv::putText(image, caption, cv::Point(box.left, box.top-5), 0, 1, cv::Scalar::all(0), 2, 16);
     }
-    cv::imwrite("image-draw.jpg", image);
+    cv::imwrite("09_yolov5_multi_thread/workspace/image-draw.jpg", image);
 }
 
 int main(){

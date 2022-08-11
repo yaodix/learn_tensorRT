@@ -486,12 +486,12 @@ namespace TRT {
 		checkRuntime(cudaSetDevice(device_id));
 	}
 
-	bool init_nv_plugins() {
+	// bool init_nv_plugins() {
 
-		bool ok = initLibNvInferPlugins(&gLogger, "");
-		if (!ok) {
-			INFOE("init lib nvinfer plugins failed.");
-		}
-		return ok;
-	}
+	// 	bool ok = initLibNvInferPlugins(&gLogger, "");
+	// 	if (!ok) {
+	// 		INFOE("init lib nvinfer plugins failed.");
+	// 	}
+	// 	return ok;
+	// }
 };
