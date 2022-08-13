@@ -30,9 +30,14 @@ message(STATUS "Find OpenCV libraries: ${OpenCV_LIBRARIES}")
 
 include_directories(${CUDA_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS})
 
-aux_source_directory(09_yolov5_multi_thread SRC_LIST)
+aux_source_directory(10_yolov5_intergration/src/tensorRT/common SRC_LIST)
+aux_source_directory(10_yolov5_intergration/src/tensorRT/infer SRC_LIST2)
+aux_source_directory(10_yolov5_intergration/src/app_yolo SRC_LIST3)
 # cuda_add_executable(example 06_yolov5_deploy/05_postprocess/01_post_process.cc 06_yolov5_deploy/05_postprocess/gpu_decode.cu)
-add_executable(example 09_yolov5_multi_thread/main.cpp ${SRC_LIST})
+cuda_add_executable(example 10_yolov5_intergration/src/main.cpp ${SRC_LIST}  ${SRC_LIST2} ${SRC_LIS3}
+        10_yolov5_intergration/src/app_yolo/yolo_decode.cu
+        10_yolov5_intergration/src/app_yolo/yolo.cpp
+)
 
 target_link_libraries(example   ${CUDA_LIBRARIES} 
                                 ${TENSORRT_LIBRARY}

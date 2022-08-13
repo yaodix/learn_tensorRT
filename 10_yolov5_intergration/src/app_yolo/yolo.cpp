@@ -3,12 +3,13 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
-#include <infer/trt_infer.hpp>
-#include <common/ilogger.hpp>
-#include <common/infer_controller.hpp>
-#include <common/preprocess_kernel.cuh>
-#include <common/monopoly_allocator.hpp>
-#include <common/cuda_tools.hpp>
+
+#include "../tensorRT/infer/trt_infer.hpp"
+#include "../tensorRT/common/ilogger.hpp"
+#include "../tensorRT/common/infer_controller.hpp"
+#include "../tensorRT/common/preprocess_kernel.cuh"
+#include "../tensorRT/common/monopoly_allocator.hpp"
+#include "../tensorRT/common/cuda_tools.hpp"
 
 namespace Yolo{
     using namespace cv;

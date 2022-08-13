@@ -1,3 +1,9 @@
+/*
+  重点是解决内存复用问题，使得内存分配、复制自动管理。
+    在代码中声明MixMemory变量后，循环使用该变量不用重复分配和销毁内存(allocated_size <= to_alloc_size)
+    第一次使用变量是才会分配内存
+*/
+
 #ifndef MEMORY_HPP
 #define MEMORY_HPP
 
@@ -9,11 +15,9 @@ namespace TRT{
 
     class MixMemory {
     public:
-        MixMemory(int device_id = CURRENT_DEVICE_ID);
+        MixMemory(int device_id = CURRENT_DEVICE_ID);  // 设定内存存放的设备id
         MixMemory(void* cpu, size_t cpu_size, void* gpu, size_t gpu_size, int device_id = CURRENT_DEVICE_ID);
         virtual ~MixMemory();
-        void* gpu(size_t size);
-        void* cpu(size_t size);
 
         template<typename _T>
         _T* gpu(size_t size){ return (_T*)gpu(size * sizeof(_T)); }
@@ -21,11 +25,8 @@ namespace TRT{
         template<typename _T>
         _T* cpu(size_t size){ return (_T*)cpu(size * sizeof(_T)); };
 
-        void release_gpu();
-        void release_cpu();
-        void release_all();
 
-        // 是否属于我自己分配的gpu/cpu
+        // 是否属于MixMemory自己分配的gpu/cpu
         inline bool owner_gpu() const{return owner_gpu_;}
         inline bool owner_cpu() const{return owner_cpu_;}
 
@@ -44,8 +45,15 @@ namespace TRT{
         // Pinned Memory
         template<typename _T>
         inline _T* cpu() const { return (_T*)cpu_; }
-
+        
+        // 引用外部分配好的内存
         void reference_data(void* cpu, size_t cpu_size, void* gpu, size_t gpu_size, int device_id = CURRENT_DEVICE_ID);
+
+        void* gpu(size_t size);  // 返回或重新分配内存空间
+        void* cpu(size_t size);
+        void release_gpu();
+        void release_cpu();
+        void release_all();
 
     private:
         void* cpu_ = nullptr;

@@ -5,8 +5,10 @@
 #include <memory>
 #include <string>
 #include <future>
+
 #include <opencv2/opencv.hpp>
-#include <common/trt_tensor.hpp>
+
+#include "../tensorRT/common/trt_tensor.hpp"
 #include "object_detector.hpp"
 
 /**

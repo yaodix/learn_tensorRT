@@ -67,10 +67,11 @@ namespace TRT {
 	public:
 		virtual ~EngineContext() { destroy(); }
 
-		void set_stream(CUStream stream){
-
+		void set_stream(CUStream stream) {
 			if(owner_stream_){
-				if (stream_) {cudaStreamDestroy(stream_);}
+				if (stream_) {
+					cudaStreamDestroy(stream_);
+				}
 				owner_stream_ = false;
 			}
 			stream_ = stream;
@@ -78,7 +79,6 @@ namespace TRT {
 
 		bool build_model(const void* pdata, size_t size) {
 			destroy();
-
 			if(pdata == nullptr || size == 0)
 				return false;
 
@@ -106,8 +106,10 @@ namespace TRT {
 			engine_.reset();
 			runtime_.reset();
 
-			if(owner_stream_){
-				if (stream_) {cudaStreamDestroy(stream_);}
+			if(owner_stream_) {
+				if (stream_) {
+					cudaStreamDestroy(stream_);
+				}
 			}
 			stream_ = nullptr;
 		}
@@ -239,14 +241,13 @@ namespace TRT {
 	}
 
 	bool InferImpl::load(const std::string& file) {
-
 		auto data = load_file(file);
 		if (data.empty())
 			return false;
 
 		context_.reset(new EngineContext());
 
-		//build model
+		//build model，acutually build engin
 		if (!context_->build_model(data.data(), data.size())) {
 			context_.reset();
 			return false;
@@ -288,10 +289,10 @@ namespace TRT {
 		bindingsPtr_.clear();
 		blobsNameMapper_.clear();
 		for (int i = 0; i < nbBindings; ++i) {
-
 			auto dims = context->engine_->getBindingDimensions(i);
 			auto type = context->engine_->getBindingDataType(i);
 			const char* bindingName = context->engine_->getBindingName(i);
+
 			dims.d[0] = 1;
 			auto newTensor = make_shared<Tensor>(dims.nbDims, dims.d, convert_trt_datatype(type));
 			newTensor->set_stream(this->context_->stream_);
@@ -301,8 +302,7 @@ namespace TRT {
 				inputs_.push_back(newTensor);
 				inputs_name_.push_back(bindingName);
 				inputs_map_to_ordered_index_.push_back(orderdBlobs_.size());
-			}
-			else {
+			} else {
 				//if is output
 				outputs_.push_back(newTensor);
 				outputs_name_.push_back(bindingName);
@@ -314,7 +314,7 @@ namespace TRT {
 		bindingsPtr_.resize(orderdBlobs_.size());
 	}
 
-	void InferImpl::set_stream(CUStream stream){
+	void InferImpl::set_stream(CUStream stream) {
 		this->context_->set_stream(stream);
 
 		for(auto& t : orderdBlobs_)
@@ -342,7 +342,6 @@ namespace TRT {
 	}
 
 	void InferImpl::forward(bool sync) {
-
 		EngineContext* context = (EngineContext*)context_.get();
 		int inputBatchSize = inputs_[0]->size(0);
 		for(int i = 0; i < context->engine_->getNbBindings(); ++i){
@@ -355,7 +354,7 @@ namespace TRT {
 		}
 
 		for (int i = 0; i < outputs_.size(); ++i) {
-			outputs_[i]->resize_single_dim(0, inputBatchSize);
+			outputs_[i]->resize_single_dim(0, inputBatchSize);  // 设置输出batch
 			outputs_[i]->to_gpu(false);
 		}
 
@@ -460,7 +459,6 @@ namespace TRT {
 	}
 
 	std::shared_ptr<Infer> load_infer(const string& file) {
-		
 		std::shared_ptr<InferImpl> Infer(new InferImpl());
 		if (!Infer->load(file))
 			Infer.reset();

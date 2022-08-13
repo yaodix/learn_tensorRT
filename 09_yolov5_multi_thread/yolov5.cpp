@@ -21,7 +21,7 @@ namespace YoloV5{
     struct Job{
         shared_ptr<promise<BoxArray>> pro;  // 输出结果
         cv::Mat input;                      // 输入图像
-        float d2i[6];                       // 
+        float d2i[6];                       // 输入图像变换矩阵
     };
 
     class InferImpl : public Infer{
@@ -57,8 +57,7 @@ namespace YoloV5{
             if(image.empty()){
                 INFOE("Image is empty");
                 return shared_future<BoxArray>();
-            }
-            
+            }            
             Job job;
             job.pro.reset(new promise<BoxArray>());
 
@@ -162,15 +161,15 @@ namespace YoloV5{
             // load model
             checkRuntime(cudaSetDevice(gpuid_));
             auto model = TRT::load_infer(file_);
-            if(model == nullptr){
+            if(model == nullptr) {
                 // failed
                 pro.set_value(false);
                 INFOE("Load model failed: %s", file_.c_str());
                 return;
             }
 
-            auto input    = model->input();
-            auto output   = model->output();
+            auto input    = model->input();  // load_infer提前分配好内存空间，但未赋值
+            auto output   = model->output(); // load_infer提前分配好内存空间，但未赋值
             input_width_  = input->size(3);
             input_height_ = input->size(2);
 
@@ -219,7 +218,7 @@ namespace YoloV5{
                 fetched_jobs.clear();
             }
 
-            // 避免外面等待，功能原理?
+            // 避免外面等待
             unique_lock<mutex> l(lock_);
             while(!jobs_.empty()) {
                 jobs_.front().pro->set_value({});  // 原来代码jobs_.back().pro->set_value({}) 错误？

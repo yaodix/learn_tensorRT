@@ -10,9 +10,8 @@
 #include "trt-tensor.hpp"
 
 namespace TRT {
-
 	class Infer {
-	public:
+	 public:
 		virtual void     forward(bool sync = true) = 0;
 		virtual int      get_max_batch_size() = 0;
 		virtual void     set_stream(CUStream stream) = 0;
@@ -20,8 +19,8 @@ namespace TRT {
 		virtual void     synchronize() = 0;
 		virtual size_t   get_device_memory_size() = 0;
 		virtual std::shared_ptr<MixMemory> get_workspace() = 0;
-		virtual std::shared_ptr<Tensor>    input (int index = 0) = 0;
-		virtual std::shared_ptr<Tensor>    output(int index = 0) = 0;
+		virtual std::shared_ptr<Tensor>    input (int index = 0) = 0;  // 持久内存
+		virtual std::shared_ptr<Tensor>    output(int index = 0) = 0;  // 持久内存
 		virtual std::shared_ptr<Tensor>    tensor(const std::string& name) = 0;
 		virtual std::string get_input_name (int index = 0) = 0;
 		virtual std::string get_output_name(int index = 0) = 0;
@@ -42,7 +41,7 @@ namespace TRT {
 	void set_device(int device_id);
 	std::shared_ptr<Infer> load_infer_from_memory(const void* pdata, size_t size);
 	std::shared_ptr<Infer> load_infer(const std::string& file);
-	bool init_nv_plugins();
+	// bool init_nv_plugins();
 
 };	//TRTInfer
 

@@ -20,9 +20,8 @@ Yolov5多线程生产消费模型终极版本
 #include <unistd.h>
 #include <opencv2/opencv.hpp>
 
-#include <common/ilogger.hpp>
-#include <builder/trt_builder.hpp>
-#include <app_yolo/yolo.hpp>
+#include "tensorRT/common/ilogger.hpp"
+#include "app_yolo/yolo.hpp"
 
 using namespace std;
 
@@ -53,8 +52,9 @@ static bool exists(const string& path){
 
 static void inference(){
 
-    auto image = cv::imread("rq.jpg");
-    auto yolov5 = Yolo::create_infer("yolov5s.trtmodel", Yolo::Type::V5, 0, 0.25, 0.45);
+    auto image = cv::imread("//home/yao/workspace/learn_tensorRT/10_yolov5_intergration/workspace/rq.jpg");
+    auto yolov5 = Yolo::create_infer("/home/yao/workspace/learn_tensorRT/06_yolov5_deploy/01_yolov5s/yolov5-6.0/yolov5s.trt",
+        Yolo::Type::V5, 0, 0.25, 0.45);
     auto boxes = yolov5->commit(image).get();
     for(auto& box : boxes){
         cv::Scalar color(0, 255, 0);
@@ -66,12 +66,10 @@ static void inference(){
         cv::rectangle(image, cv::Point(box.left-3, box.top-33), cv::Point(box.left + text_width, box.top), color, -1);
         cv::putText(image, caption, cv::Point(box.left, box.top-5), 0, 1, cv::Scalar::all(0), 2, 16);
     }
-    cv::imwrite("image-draw.jpg", image);
+    cv::imwrite("//home/yao/workspace/learn_tensorRT/10_yolov5_intergration/workspace/image-draw-inte.jpg", image);
 }
 
 int main(){
-
-
     inference();
     return 0;
 }

@@ -1,4 +1,28 @@
 
+    /*
+
+    1. 内存管理，tensor内容交给mixmomery管理
+    2. 内存的复用，使用mixmemory
+    3. 内存的copy,cpu->gpu,gpu->cpu
+        a. 定义内存标记，表示最新的内容在哪里（gpu,cpu，init）
+        b. 懒分配原则，需要使用的时候才会分配内存
+        c. 获取内存地址，即表示想拿到最新的数据‘
+           如，tensor.cpu想拿到最新的数据，并把它放在cpu上
+           如，tensor.gpu想拿到最新的数据，并把它放在gpu上
+
+    4. 索引的计算，基础且频繁
+    shape/dim    index
+       B           1
+       C           0
+       H           5
+       W           9
+    position = 0
+    for d, i in zip(dims, index);
+      position *= d;
+      position += i;
+
+*/
+
 #ifndef TRT_TENSOR_HPP
 #define TRT_TENSOR_HPP
 
@@ -11,10 +35,11 @@
 
 struct CUstream_st;
 typedef CUstream_st CUStreamRaw;
-typedef CUStreamRaw* CUStream;
+typedef CUStreamRaw* CUStream;  // (指针变量)流
+
+// typedef CUstream_st* cudaStream_t
 
 namespace TRT{
-
     enum class DataHead : int{
         Init   = 0,
         Device = 1,
@@ -22,7 +47,7 @@ namespace TRT{
     };
 
     enum class DataType : int {
-        Float = 0,
+        Float = 0,  // float32
         Float16 = 1,
         Int32 = 2,
         UInt8 = 3
@@ -38,9 +63,15 @@ namespace TRT{
         Tensor& operator = (const Tensor& other) = delete;
 
         explicit Tensor(DataType dtype = DataType::Float, std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
-        explicit Tensor(int n, int c, int h, int w, DataType dtype = DataType::Float, std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
-        explicit Tensor(int ndims, const int* dims, DataType dtype = DataType::Float, std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
-        explicit Tensor(const std::vector<int>& dims, DataType dtype = DataType::Float, std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
+        explicit Tensor(int n, int c, int h, int w, DataType dtype = DataType::Float,
+                std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
+
+        explicit Tensor(int ndims, const int* dims, DataType dtype = DataType::Float,
+                std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
+
+        explicit Tensor(const std::vector<int>& dims, DataType dtype = DataType::Float,
+                std::shared_ptr<MixMemory> data = nullptr, int device_id = CURRENT_DEVICE_ID);
+
         virtual ~Tensor();
 
         int numel() const;
@@ -67,7 +98,7 @@ namespace TRT{
         bool empty() const;
 
         template<typename ... _Args>
-        int offset(int index, _Args ... index_args) const{
+        int offset(int index, _Args ... index_args) const {  // index是batch？
             const int index_array[] = {index, index_args...};
             return offset_array(sizeof...(index_args) + 1, index_array);
         }
@@ -116,7 +147,7 @@ namespace TRT{
 
         bool is_stream_owner() const {return stream_owner_;}
         CUStream get_stream() const{return stream_;}
-        Tensor& set_stream(CUStream stream, bool owner=false){stream_ = stream; stream_owner_ = owner; return *this;}
+        Tensor& set_stream(CUStream stream, bool owner=false) {stream_ = stream; stream_owner_ = owner; return *this;}
 
         Tensor& set_mat     (int n, const cv::Mat& image);
         Tensor& set_norm_mat(int n, const cv::Mat& image, float mean[3], float std[3]);
@@ -131,8 +162,7 @@ namespace TRT{
 
         void reference_data(const std::vector<int>& shape, void* cpu_data, size_t cpu_size, void* gpu_data, size_t gpu_size, DataType dtype);
 
-        /**
-        
+        /**        
         # 以下代码是python中加载Tensor
         import numpy as np
 

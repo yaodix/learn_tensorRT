@@ -6,7 +6,7 @@
 
 namespace TRT{
 
-    inline static int check_and_trans_device_id(int device_id){
+    inline static int check_and_trans_device_id(int device_id) {
         if(device_id != CURRENT_DEVICE_ID){
             CUDATools::check_device_id(device_id);
             return device_id;
@@ -16,7 +16,7 @@ namespace TRT{
         return device_id;
     }
 
-    MixMemory::MixMemory(int device_id){
+    MixMemory::MixMemory(int device_id) {
         device_id_ = check_and_trans_device_id(device_id);
     }
 
@@ -42,7 +42,7 @@ namespace TRT{
         this->gpu_ = gpu;
         this->gpu_size_ = gpu_size;
 
-        this->owner_cpu_ = !(cpu && cpu_size > 0);
+        this->owner_cpu_ = !(cpu && cpu_size > 0);  // 是否属于mixmemory自己分配的gpu/cpu，(cpu && cpu_size > 0)为true是外部传入的数据
         this->owner_gpu_ = !(gpu && gpu_size > 0);
         device_id_ = check_and_trans_device_id(device_id);
     }
@@ -57,7 +57,7 @@ namespace TRT{
             release_gpu();
 
             gpu_size_ = size;
-            CUDATools::AutoDevice auto_device_exchange(device_id_);
+            CUDATools::AutoDevice auto_device_exchange(device_id_);  // 切换到当前指定device
             checkRuntime(cudaMalloc(&gpu_, size));
             checkRuntime(cudaMemset(gpu_, 0, size));
         }

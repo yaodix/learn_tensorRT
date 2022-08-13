@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 #include <map>
-#include <common/trt_tensor.hpp>
+#include "../common/trt_tensor.hpp"
 
 namespace TRT {
 
@@ -48,7 +48,7 @@ namespace TRT {
 	void set_device(int device_id);
 	std::shared_ptr<Infer> load_infer_from_memory(const void* pdata, size_t size);
 	std::shared_ptr<Infer> load_infer(const std::string& file);
-	bool init_nv_plugins();
+	// bool init_nv_plugins();
 
 };	//TRTInfer
 

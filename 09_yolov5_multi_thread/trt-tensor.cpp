@@ -218,7 +218,7 @@ namespace TRT{
 			return *this;
 		}
 
-		if(head_ == DataHead::Device){
+		if(head_ == DataHead::Device) {
 			CUDATools::AutoDevice auto_device_exchange(this->device());
 			checkRuntime(cudaMemcpyAsync((char*)data_->gpu() + offset_location, src, copyed_bytes, cudaMemcpyHostToDevice, stream_));
 		}else if(head_ == DataHead::Host){
@@ -282,7 +282,6 @@ namespace TRT{
 	}
 
 	Tensor& Tensor::resize(int ndims, const int* dims) {
-
 		vector<int> setup_dims(ndims);
 		for(int i = 0; i < ndims; ++i){
 			int dim = dims[i];
@@ -382,12 +381,10 @@ namespace TRT{
 		return *this;
 	}
 
-	int Tensor::offset_array(size_t size, const int* index_array) const{
-
+	int Tensor::offset_array(size_t size, const int* index_array) const {
 		assert(size <= shape_.size());
 		int value = 0;
-		for(int i = 0; i < shape_.size(); ++i){
-
+		for(int i = 0; i < shape_.size(); ++i) {
 			if(i < size)
 				value += index_array[i];
 

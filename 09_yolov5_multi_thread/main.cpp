@@ -50,8 +50,8 @@ static bool exists(const string& path){
 
 static void inference(){
 
-    auto image = cv::imread("09_yolov5_multi_thread/workspace/rq.jpg");
-    auto yolov5 = YoloV5::create_infer("06_yolov5_deploy/01_yolov5s/yolov5-6.0/yolov5s.trt");
+    auto image = cv::imread("/home/yao/workspace/learn_tensorRT/09_yolov5_multi_thread/workspace/rq.jpg");
+    auto yolov5 = YoloV5::create_infer("/home/yao/workspace/learn_tensorRT/06_yolov5_deploy/01_yolov5s/yolov5-6.0/yolov5s.trt");
     auto boxes = yolov5->commit(image).get();
 
     for(auto& box : boxes){
@@ -64,7 +64,7 @@ static void inference(){
         cv::rectangle(image, cv::Point(box.left-3, box.top-33), cv::Point(box.left + text_width, box.top), color, -1);
         cv::putText(image, caption, cv::Point(box.left, box.top-5), 0, 1, cv::Scalar::all(0), 2, 16);
     }
-    cv::imwrite("09_yolov5_multi_thread/workspace/image-draw.jpg", image);
+    cv::imwrite("/home/yao/workspace/learn_tensorRT/09_yolov5_multi_thread/workspace/image-draw.jpg", image);
 }
 
 int main(){
