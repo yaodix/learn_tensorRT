@@ -1,13 +1,14 @@
 /**
  * 独占分配器
  * 用以解决以下问题：
+ * 0. 限制队列数量上限问题--最重要
  * 1. 实现tensor复用的问题
  * 2. 对于tensor使用的两个阶段实现并行，时间重叠
  *    阶段一：预处理准备
  *    阶段二：模型推理
  * 
  * 设计思路：
- * 以海底捞吃火锅为类比，座位分为两种：堂内吃饭的座位、厅外等候的座位
+ *  以海底捞吃火锅为类比，座位分为两种：堂内吃饭的座位、厅外等候的座位
  * 
  * 1. 初始状态，堂内有10个座位，厅外有10个座位，全部空
  * 2. 来了30个人吃火锅
@@ -25,6 +26,17 @@
  * 而这里提到的几个点就是设计的主要目标
  **/
 
+/*
+    // 向tensor allocator申请一个tensor,
+    // 解决复用性问题，生产频率过高问题
+    //   1. 使用一个tensor_allocator_来管理tensor,所有需要使用tensor的人，找tensor_allocator申请
+    //      预先会分配固定数量的tensor,比如10个
+    //      如果申请的时候，有空闲的tensor没有被分配出去，则吧这个空闲给他
+    //      如果申请的时候，没有空闲的tensor，此时，让他等待
+    //      如果使用者使用完毕了，他应该通知tensor_allocator，告诉他这个tensor不用了，你可以分配给别人。
+    //    实现了tensor的复用，也实现了申请数量太多，处理不过来时让他等待的问题，其实也等于处理了队列上限问题
+*/
+
 #ifndef MONOPOLY_ALLOCATOR_HPP
 #define MONOPOLY_ALLOCATOR_HPP
 
@@ -34,7 +46,7 @@
 #include <memory>
 
 template<class _ItemType>
-class MonopolyAllocator{
+class MonopolyAllocator {
 public:
     /* Data是数据容器类
        允许query获取的item执行item->release释放自身所有权，该对象可以被复用
@@ -56,7 +68,7 @@ public:
     };
     typedef std::shared_ptr<MonopolyData> MonopolyDataPointer;
 
-    MonopolyAllocator(int size){
+    MonopolyAllocator(int size) {
         capacity_ = size;
         num_available_ = size;
         datas_.resize(size);
@@ -84,10 +96,9 @@ public:
         std::unique_lock<std::mutex> l(lock_);
         if(!run_) return nullptr;
         
-        if(num_available_ == 0){
+        if(num_available_ == 0){  // 以下操作
             num_wait_thread_++;
-
-            auto state = cv_.wait_for(l, std::chrono::milliseconds(timeout), [&](){
+            auto state = cv_.wait_for(l, std::chrono::milliseconds(timeout), [&](){  // timeout: 1
                 return num_available_ > 0 || !run_;
             });
 

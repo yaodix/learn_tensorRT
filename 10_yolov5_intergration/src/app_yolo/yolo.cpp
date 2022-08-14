@@ -145,15 +145,13 @@ namespace Yolo{
         return output;
     }
 
-// 对消费者模型的封装，避免写重复的线程代码
+// InferController是对消费者模型的封装，避免写重复的线程代码
 // 比如启动线程，停止线程，添加任务队列，从队列获取任务
-    using ControllerImpl = InferController
-    <
-        Mat,                    // input
-        BoxArray,               // output
-        tuple<string, int>,     // start param
-        AffineMatrix            // additional
-    >;
+    using ControllerImpl = InferController< Mat,                    // input
+                                            BoxArray,               // output
+                                            tuple<string, int>,     // start param
+                                            AffineMatrix            // additional
+                                            >;
     class InferImpl : public Infer, public ControllerImpl{
     public:
 
@@ -230,8 +228,7 @@ namespace Yolo{
             output_array_device.resize(max_batch_size, 1 + MAX_IMAGE_BBOX * NUM_BOX_ELEMENT).to_gpu();
 
             vector<Job> fetch_jobs;
-            while(get_jobs_and_wait(fetch_jobs, max_batch_size)){
-
+            while(get_jobs_and_wait(fetch_jobs, max_batch_size)) {
                 int infer_batch_size = fetch_jobs.size();
                 input->resize_single_dim(0, infer_batch_size);
 
@@ -246,7 +243,7 @@ namespace Yolo{
 
                     affin_matrix_device.copy_from_gpu(affin_matrix_device.offset(ibatch), mono->get_workspace()->gpu(), 6);
                     input->copy_from_gpu(input->offset(ibatch), mono->gpu(), mono->count());
-                    job.mono_tensor->release();
+                    job.mono_tensor->release();  // 释放所有权，并不是释放内存
                 }
 
                 engine->forward(false);
@@ -306,6 +303,12 @@ namespace Yolo{
 
             // 向tensor allocator申请一个tensor,
             // 解决复用性问题，生产频率过高问题
+            //   1. 使用一个tensor_allocator_来管理tensor,所有需要使用tensor的人，找tensor_allocator申请
+            //      预先会分配固定数量的tensor,比如10个
+            //      如果申请的时候，有空闲的tensor没有被分配出去，则吧这个空闲给他
+            //      如果申请的时候，没有空闲的tensor，此时，让他等待
+            //      如果使用者使用完毕了，他应该通知tensor_allocator，告诉他这个tensor不用了，你可以分配给别人。
+            //    实现了tensor的复用，也实现了申请数量太多，处理不过来时让他等待的问题，其实也等于处理了队列上限问题
             job.mono_tensor = tensor_allocator_->query();
             if(job.mono_tensor == nullptr){
                 INFOE("Tensor allocator query failed.");
@@ -321,13 +324,13 @@ namespace Yolo{
                 tensor = make_shared<TRT::Tensor>();
                 tensor->set_workspace(make_shared<TRT::MixMemory>());
 
-                if(use_multi_preprocess_stream_){
+                if(use_multi_preprocess_stream_){  // 多流控制
                     checkCudaRuntime(cudaStreamCreate(&preprocess_stream));
 
                     // owner = true, stream needs to be free during deconstruction
                     tensor->set_stream(preprocess_stream, true);
-                }else{
-                    preprocess_stream = stream_;
+                }else{  // 
+                    preprocess_stream = stream_;     // 预处理和engin用同一个流
 
                     // owner = false, tensor ignored the stream
                     tensor->set_stream(preprocess_stream, false);
@@ -335,7 +338,7 @@ namespace Yolo{
             }
 
             Size input_size(input_width_, input_height_);
-            job.additional.compute(image.size(), input_size);
+            job.additional.compute(image.size(), input_size);  // additional是仿射变换矩阵
             
             preprocess_stream = tensor->get_stream();
             tensor->resize(1, 3, input_height_, input_width_);

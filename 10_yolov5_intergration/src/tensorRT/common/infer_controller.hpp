@@ -45,7 +45,7 @@ public:
                 jobs_.pop();
             }
         };
-
+        
         if(worker_){
             worker_->join();
             worker_.reset();

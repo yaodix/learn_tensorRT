@@ -3,8 +3,7 @@
 
 #include <vector>
 
-namespace ObjectDetector{
-
+namespace ObjectDetector {
     struct Box{
         float left, top, right, bottom, confidence;
         int class_label;
@@ -17,6 +16,5 @@ namespace ObjectDetector{
 
     typedef std::vector<Box> BoxArray;
 };
-
 
 #endif // OBJECT_DETECTOR_HPP

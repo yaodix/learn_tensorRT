@@ -22,7 +22,7 @@ namespace Yolo{
 
     enum class Type : int{
         V5 = 0,
-        X  = 1,
+        X  = 1,  // x与v5前处理不一样，后处理一样
         V3 = V5
     };
 
