@@ -30,13 +30,19 @@ message(STATUS "Find OpenCV libraries: ${OpenCV_LIBRARIES}")
 
 include_directories(${CUDA_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS})
 
-aux_source_directory(10_yolov5_intergration/src/tensorRT/common SRC_LIST)
-aux_source_directory(10_yolov5_intergration/src/tensorRT/infer SRC_LIST2)
-aux_source_directory(10_yolov5_intergration/src/app_yolo SRC_LIST3)
+aux_source_directory(11_self-driving/src/tensorRT/common SRC_LIST5)
+aux_source_directory(11_self-driving/src/tensorRT/infer  SRC_LIST6)
+aux_source_directory(11_self-driving/src/app-lane SRC_LIST1)
+aux_source_directory(11_self-driving/src/app-ldrn SRC_LIST2)
+aux_source_directory(11_self-driving/src/app-road SRC_LIST3)
+aux_source_directory(11_self-driving/src/app-yolo SRC_LIST4)
 # cuda_add_executable(example 06_yolov5_deploy/05_postprocess/01_post_process.cc 06_yolov5_deploy/05_postprocess/gpu_decode.cu)
-cuda_add_executable(example 10_yolov5_intergration/src/main.cpp ${SRC_LIST}  ${SRC_LIST2} ${SRC_LIS3}
-        10_yolov5_intergration/src/app_yolo/yolo_decode.cu
-        10_yolov5_intergration/src/app_yolo/yolo.cpp
+cuda_add_executable(example 11_self-driving/src/main.cpp ${SRC_LIST1}  ${SRC_LIST2} ${SRC_LIST3}
+${SRC_LIST4}
+${SRC_LIST5}
+${SRC_LIST6}
+11_self-driving/src/app-road/road-mask.cu
+11_self-driving/src/app-yolo/yolo-decode.cu
 )
 
 target_link_libraries(example   ${CUDA_LIBRARIES} 
