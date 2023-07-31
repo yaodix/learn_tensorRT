@@ -112,47 +112,68 @@ if(INFERENCE_HELPER_ENABLE_TFLITE_DELEGATE_NNAPI)
     add_definitions(-DINFERENCE_HELPER_ENABLE_TFLITE_DELEGATE_NNAPI)
 endif()
 
+# CUDA
+find_package(CUDA REQUIRED)
+message(STATUS "Find CUDA include at ${CUDA_INCLUDE_DIRS}")
+message(STATUS "Find CUDA libraries: ${CUDA_LIBRARIES}")
+# TensorRT
+# set(TENSORRT_ROOT /home/yao/TensorRT-7.2.3.4/)
+set(TENSORRT_ROOT /opt/zhito_third_party/TensorRT-7.0.0.11/)
+find_path(TENSORRT_INCLUDE_DIR NvInfer.h
+        HINTS ${TENSORRT_ROOT} PATH_SUFFIXES include/)
+message(STATUS "Found TensorRT headers at ${TENSORRT_INCLUDE_DIR}")
+find_library(TENSORRT_LIBRARY_INFER nvinfer
+        HINTS ${TENSORRT_ROOT} ${TENSORRT_BUILD} ${CUDA_TOOLKIT_ROOT_DIR}
+        PATH_SUFFIXES lib lib64 lib/x64)
+find_library(TENSORRT_LIBRARY_ONNXPARSER nvonnxparser
+        HINTS  ${TENSORRT_ROOT} ${TENSORRT_BUILD} ${CUDA_TOOLKIT_ROOT_DIR}
+        PATH_SUFFIXES lib lib64 lib/x64)
+set(TENSORRT_LIBRARY ${TENSORRT_LIBRARY_INFER} ${TENSORRT_LIBRARY_ONNXPARSER})
+message(STATUS "Find TensorRT libs: ${TENSORRT_LIBRARY}")
+target_include_directories(${LibraryName} PUBLIC ${CUDA_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR})
+target_link_libraries(${LibraryName} ${CUDA_LIBRARIES}  ${TENSORRT_LIBRARY})
+
 
 # For TensorRT
-if(INFERENCE_HELPER_ENABLE_TENSORRT)
-    find_package(CUDA)
-    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
-        if(MSVC_VERSION)
-            # note: the following lines for my environment (Windows 10/11. cuDNN is copied into CUDA install path)
-            # Copy TensorRT into CUDA install path
-            # or, Set environment variable(TensorRT_ROOT = C:\Program Files\NVIDIA GPU Computing Toolkit\TensorRT\TensorRT-8.2.0.6), and add %TensorRT_ROOT%\lib to path
-            target_link_directories(${LibraryName} PUBLIC ${CUDA_TOOLKIT_ROOT_DIR}/bin)
-            target_link_directories(${LibraryName} PUBLIC ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64)
-        else()
-            target_link_directories(${LibraryName} PUBLIC /usr/local/cuda/lib64)
-        endif()
-    endif()
-    if(CUDA_FOUND)
-        if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
-            if(NOT $ENV{TensorRT_ROOT} STREQUAL "")
-                target_link_directories(${LibraryName} PUBLIC $ENV{TensorRT_ROOT}/lib)
-            endif()
-        endif()
-        target_link_libraries(${LibraryName}
-            ${CUDA_LIBRARIES}
-            nvinfer
-            nvonnxparser
-            nvinfer_plugin
-            cudnn
-        )
-        target_include_directories(${LibraryName} PUBLIC
-            ${CUDA_INCLUDE_DIRS}
-            tensorrt
-        )
-        if(NOT $ENV{TensorRT_ROOT} STREQUAL "")
-            target_include_directories(${LibraryName} PUBLIC $ENV{TensorRT_ROOT}/include)
-        endif()
-        add_definitions(-DINFERENCE_HELPER_ENABLE_TENSORRT)
-        message("CUDA_INCLUDE_DIRS: ${CUDA_INCLUDE_DIRS}")
-    else()
-        message(WARNING, "Cannot find CUDA")
-    endif()
-endif()
+# if(INFERENCE_HELPER_ENABLE_TENSORRT)
+#     find_package(CUDA)
+#     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
+#         if(MSVC_VERSION)
+#             # note: the following lines for my environment (Windows 10/11. cuDNN is copied into CUDA install path)
+#             # Copy TensorRT into CUDA install path
+#             # or, Set environment variable(TensorRT_ROOT = C:\Program Files\NVIDIA GPU Computing Toolkit\TensorRT\TensorRT-8.2.0.6), and add %TensorRT_ROOT%\lib to path
+#             target_link_directories(${LibraryName} PUBLIC ${CUDA_TOOLKIT_ROOT_DIR}/bin)
+#             target_link_directories(${LibraryName} PUBLIC ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64)
+#         else()
+#             target_link_directories(${LibraryName} PUBLIC /usr/local/cuda/lib64)
+#         endif()
+#     endif()
+#     if(CUDA_FOUND)
+#         if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
+#             if(NOT $ENV{TensorRT_ROOT} STREQUAL "")
+#                 target_link_directories(${LibraryName} PUBLIC $ENV{TensorRT_ROOT}/lib)
+#             endif()
+#         endif()
+#         target_link_libraries(${LibraryName}
+#             ${CUDA_LIBRARIES}
+#             nvinfer
+#             nvonnxparser
+#             nvinfer_plugin
+#             cudnn
+#         )
+#         target_include_directories(${LibraryName} PUBLIC
+#             ${CUDA_INCLUDE_DIRS}
+#             tensorrt
+#         )
+#         if(NOT $ENV{TensorRT_ROOT} STREQUAL "")
+#             target_include_directories(${LibraryName} PUBLIC $ENV{TensorRT_ROOT}/include)
+#         endif()
+#         add_definitions(-DINFERENCE_HELPER_ENABLE_TENSORRT)
+#         message("CUDA_INCLUDE_DIRS: ${CUDA_INCLUDE_DIRS}")
+#     else()
+#         message(WARNING, "Cannot find CUDA")
+#     endif()
+# endif()
 
 # For NCNN
 if(INFERENCE_HELPER_ENABLE_NCNN)
