@@ -117,8 +117,7 @@ find_package(CUDA REQUIRED)
 message(STATUS "Find CUDA include at ${CUDA_INCLUDE_DIRS}")
 message(STATUS "Find CUDA libraries: ${CUDA_LIBRARIES}")
 # TensorRT
-# set(TENSORRT_ROOT /home/yao/TensorRT-7.2.3.4/)
-set(TENSORRT_ROOT /opt/zhito_third_party/TensorRT-7.0.0.11/)
+set(TENSORRT_ROOT /opt/TensorRT-8.0.3.4/)
 find_path(TENSORRT_INCLUDE_DIR NvInfer.h
         HINTS ${TENSORRT_ROOT} PATH_SUFFIXES include/)
 message(STATUS "Found TensorRT headers at ${TENSORRT_INCLUDE_DIR}")

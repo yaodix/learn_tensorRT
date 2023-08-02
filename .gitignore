@@ -5,3 +5,5 @@ build/
 *.onnx
 11_self-driving/workspace/*.onnx
 11_self-driving/workspace/*.trt
+
+*/*/*.mp4
